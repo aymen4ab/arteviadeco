@@ -3,7 +3,6 @@
 import { motion } from 'motion/react';
 import { ArrowUpRight, ChevronRight } from 'lucide-react';
 import { useLanguage } from './LanguageProvider';
-import { LINKS } from '../content';
 
 export default function BottomRightCorner() {
   const { t } = useLanguage();
@@ -41,23 +40,18 @@ export default function BottomRightCorner() {
         </svg>
       </div>
 
-      <div className="bg-[rgba(201,153,79,0.1)] w-10 h-10 md:w-14 md:h-14 rounded-full flex items-center justify-center border border-[rgba(201,153,79,0.35)]">
-        <ArrowUpRight className="w-5 h-5 md:w-6 md:h-6 text-[#B8873F] rtl:-scale-x-100" />
+      <div className="bg-[rgba(30,50,90,0.05)] w-10 h-10 md:w-14 md:h-14 rounded-full flex items-center justify-center border border-[rgba(30,50,90,0.1)]">
+        <ArrowUpRight className="w-5 h-5 md:w-6 md:h-6 text-[rgba(30,50,90,0.8)] rtl:-scale-x-100" />
       </div>
 
       <div className="flex flex-col">
-        <span className="text-[16px] md:text-[20px] font-normal text-[rgba(10,35,73,0.95)] whitespace-nowrap">
+        <span className="text-[16px] md:text-[20px] font-normal text-[rgba(30,50,90,0.95)]">
           {t.cornerTitle}
         </span>
-        <a
-          href={LINKS.portfolio}
-          className="flex items-center gap-1 text-[rgba(10,35,73,0.6)] cursor-pointer hover:text-[rgba(10,35,73,0.8)] transition-colors"
-        >
-          <span className="text-[12px] md:text-[15px] font-normal whitespace-nowrap">
-            {t.cornerLink}
-          </span>
+        <div className="flex items-center gap-1 text-[rgba(30,50,90,0.6)] cursor-pointer hover:text-[rgba(30,50,90,0.8)] transition-colors">
+          <span className="text-[12px] md:text-[15px] font-normal">{t.cornerLink}</span>
           <ChevronRight className="w-3 h-3 md:w-4 md:h-4 rtl:rotate-180" />
-        </a>
+        </div>
       </div>
     </motion.div>
   );

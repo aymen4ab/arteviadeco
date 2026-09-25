@@ -37,19 +37,14 @@ export default function Hero() {
           <div className="w-full flex flex-col items-center pt-8 px-6 text-center max-w-4xl">
             <HeroBadge />
             <motion.h1
-              key={`title-${lang}`}
               initial={{ opacity: 0, scale: 0.98 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.8, delay: 0.2 }}
-              className="text-4xl sm:text-5xl md:text-6xl lg:text-[80px] font-normal text-[rgba(10,35,73,0.92)] mb-2 tracking-tight rtl:tracking-normal leading-[1.05] rtl:leading-[1.25]"
+              className="text-4xl sm:text-5xl md:text-6xl lg:text-[80px] font-normal text-[#5E6470] mb-2 tracking-tight leading-[1.05] rtl:tracking-normal rtl:leading-[1.25]"
             >
-              {t.titleLead}{' '}
-              <span className="bg-gradient-to-r from-[#B8873F] via-[#E3BC76] to-[#B8873F] bg-clip-text text-transparent">
-                {t.titleAccent}
-              </span>
+              {t.title}
             </motion.h1>
             <motion.p
-              key={`subtitle-${lang}`}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.8, delay: 0.4 }}

@@ -1,16 +1,8 @@
 export type Lang = 'en' | 'ar';
 
-// Replace these with Rawabi's real links (e.g. https://wa.me/9665XXXXXXXX,
-// https://instagram.com/<handle>). '#' keeps the buttons inert until then.
-export const LINKS = {
-  consultation: '#',
-  whatsapp: '#',
-  portfolio: '#',
-};
-
 export const CONTENT = {
   en: {
-    brand: 'Rawabi',
+    brand: 'RAWABI',
     brandTagline: 'Design Services',
     nav: [
       { label: 'Services', href: '#services', hasDropdown: true },
@@ -21,8 +13,7 @@ export const CONTENT = {
     cta: 'Book a Consultation',
     langToggle: 'العربية',
     badge: 'Architecture & Interior Design',
-    titleLead: 'Designing Spaces',
-    titleAccent: 'That Rise',
+    title: 'Designing Spaces That Rise',
     subtitle:
       'Architectural, interior and landscape design — from the first sketch to the final finish, crafted with precision and elegance.',
     statValue: '+150',
@@ -43,8 +34,7 @@ export const CONTENT = {
     cta: 'احجز استشارة',
     langToggle: 'EN',
     badge: 'تصميم معماري وداخلي',
-    titleLead: 'نصمّم مساحات',
-    titleAccent: 'ترتقي',
+    title: 'نصمّم مساحات ترتقي',
     subtitle:
       'تصميم معماري وداخلي وتنسيق مواقع — من الفكرة الأولى حتى اللمسة الأخيرة، بدقة وأناقة.',
     statValue: '+150',
