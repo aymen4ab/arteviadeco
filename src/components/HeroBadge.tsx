@@ -2,11 +2,8 @@
 
 import { motion } from 'motion/react';
 import { Sparkles } from 'lucide-react';
-import { useLanguage } from './LanguageProvider';
 
 export default function HeroBadge() {
-  const { t } = useLanguage();
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -16,7 +13,7 @@ export default function HeroBadge() {
     >
       <Sparkles className="w-4 h-4 text-[rgba(30,50,90,0.8)]" />
       <span className="text-[14px] font-normal text-[rgba(30,50,90,0.9)]">
-        {t.badge}
+        Fluid Staking
       </span>
     </motion.div>
   );

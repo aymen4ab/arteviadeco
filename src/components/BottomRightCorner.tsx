@@ -2,11 +2,8 @@
 
 import { motion } from 'motion/react';
 import { ArrowUpRight, ChevronRight } from 'lucide-react';
-import { useLanguage } from './LanguageProvider';
 
 export default function BottomRightCorner() {
-  const { t } = useLanguage();
-
   return (
     <motion.div
       initial={{ y: 20, opacity: 0 }}
@@ -41,16 +38,16 @@ export default function BottomRightCorner() {
       </div>
 
       <div className="bg-[rgba(30,50,90,0.05)] w-10 h-10 md:w-14 md:h-14 rounded-full flex items-center justify-center border border-[rgba(30,50,90,0.1)]">
-        <ArrowUpRight className="w-5 h-5 md:w-6 md:h-6 text-[rgba(30,50,90,0.8)] rtl:-scale-x-100" />
+        <ArrowUpRight className="w-5 h-5 md:w-6 md:h-6 text-[rgba(30,50,90,0.8)]" />
       </div>
 
       <div className="flex flex-col">
         <span className="text-[16px] md:text-[20px] font-normal text-[rgba(30,50,90,0.95)]">
-          {t.cornerTitle}
+          Documentation
         </span>
         <div className="flex items-center gap-1 text-[rgba(30,50,90,0.6)] cursor-pointer hover:text-[rgba(30,50,90,0.8)] transition-colors">
-          <span className="text-[12px] md:text-[15px] font-normal">{t.cornerLink}</span>
-          <ChevronRight className="w-3 h-3 md:w-4 md:h-4 rtl:rotate-180" />
+          <span className="text-[12px] md:text-[15px] font-normal">Library</span>
+          <ChevronRight className="w-3 h-3 md:w-4 md:h-4" />
         </div>
       </div>
     </motion.div>
