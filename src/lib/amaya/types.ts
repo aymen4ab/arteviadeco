@@ -160,5 +160,6 @@ export type AmayaEvent =
   | { type: 'source'; reportId: string; source: AmayaSource }
   | { type: 'note'; reportId: string; note: string }
   | { type: 'research_done'; id: string; demo: boolean }
+  | { type: 'research_failed'; id: string; message: string }
   | { type: 'error'; message: string }
   | { type: 'done' }

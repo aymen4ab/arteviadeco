@@ -209,7 +209,8 @@
   border: 1px solid rgba(var(--amy-cyan-rgb), 0.3);
   color: var(--amy-dim);
 }
-.amy-brain-remote {
+.amy-brain-remote,
+.amy-brain-claude {
   border-color: #7dffb0;
   color: #7dffb0;
 }

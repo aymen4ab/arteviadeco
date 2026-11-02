@@ -1,21 +1,26 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { runLocalBrain } from '@/lib/amaya/local-brain'
+import { runClaudeBrain } from '@/lib/amaya/claude-brain'
 import { encodeEvent } from '@/lib/amaya/ndjson'
 import type { AmayaBrainRequest, AmayaContext, AmayaTurn } from '@/lib/amaya/types'
 
 /**
  * Amaya brain endpoint.
  *
- *   GET  /api/amaya/brain  → { mode: 'local' | 'remote' }
+ *   GET  /api/amaya/brain  → { mode: 'remote' | 'claude' | 'local' }
  *   POST /api/amaya/brain  → NDJSON stream of AmayaEvent (see lib/amaya/types.ts)
  *
- * If AMAYA_BRAIN_URL is set, the request is forwarded to the Amaya
- * platform brain (Bearer AMAYA_BRAIN_KEY) and its NDJSON stream is
- * piped straight back. Otherwise the built-in local demo brain answers.
+ * Brain selection, first match wins:
+ *   1. AMAYA_BRAIN_URL   → forward to the Amaya platform brain
+ *                          (Bearer AMAYA_BRAIN_KEY) and pipe its stream back.
+ *   2. ANTHROPIC_API_KEY → Claude brain (lib/amaya/claude-brain.ts).
+ *   3. otherwise         → built-in local demo brain.
  */
 
 export const dynamic = 'force-dynamic'
+// Research turns (web search + report) can take a few minutes.
+export const maxDuration = 300
 
 const MAX_TEXT = 2000
 const MAX_HISTORY = 20
@@ -28,8 +33,10 @@ async function getUserId(): Promise<string | null> {
   return user?.id ?? null
 }
 
-function brainMode(): 'local' | 'remote' {
-  return process.env.AMAYA_BRAIN_URL ? 'remote' : 'local'
+function brainMode(): 'local' | 'remote' | 'claude' {
+  if (process.env.AMAYA_BRAIN_URL) return 'remote'
+  if (process.env.ANTHROPIC_API_KEY) return 'claude'
+  return 'local'
 }
 
 export async function GET() {
@@ -133,9 +140,10 @@ export async function POST(request: Request) {
     }
   }
 
-  /* ---------------- local: built-in demo brain ------------------ */
+  /* ---------------- claude or local demo brain ------------------- */
   const encoder = new TextEncoder()
-  const iterator = runLocalBrain(body)
+  const iterator =
+    brainMode() === 'claude' ? runClaudeBrain(body, undefined, request.signal) : runLocalBrain(body)
   const stream = new ReadableStream<Uint8Array>({
     async pull(controller) {
       try {

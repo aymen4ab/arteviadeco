@@ -9,6 +9,7 @@ const EVENT_TYPES = new Set([
   'source',
   'note',
   'research_done',
+  'research_failed',
   'error',
   'done',
 ])

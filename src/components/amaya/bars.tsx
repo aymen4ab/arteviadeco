@@ -32,7 +32,7 @@ function HudButton({
 }
 
 export function TopBar(props: {
-  brainMode: 'local' | 'remote' | 'offline' | 'checking'
+  brainMode: 'local' | 'remote' | 'claude' | 'offline' | 'checking'
   lang: AmayaLang
   sfxOn: boolean
   windows: { history: boolean; text: boolean; camera: boolean; sources: boolean }
@@ -48,7 +48,9 @@ export function TopBar(props: {
   const brainLabel =
     props.brainMode === 'remote'
       ? 'AMAYA PLATFORM'
-      : props.brainMode === 'local'
+      : props.brainMode === 'claude'
+        ? 'CLAUDE'
+        : props.brainMode === 'local'
         ? 'LOCAL · DEMO'
         : props.brainMode === 'checking'
           ? 'LINKING…'

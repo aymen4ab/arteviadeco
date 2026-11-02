@@ -3,8 +3,10 @@
 Amaya is a voice assistant with a holographic HUD, available at **`/amaya`** (requires sign-in, like the rest of the dashboard).
 You talk to it by voice ("Amaya…") or text. It researches, builds visual reports, and drives its interface through commands.
 
-> **Current state:** the full interface works with a built-in **local, demo brain**. The reports it generates contain **illustrative data** and are labelled `DEMO`.
-> To plug in Amaya's real brain, see [Connecting the platform brain](#connecting-the-platform-brain).
+> **Brains:** Amaya picks its brain automatically:
+> 1. `AMAYA_BRAIN_URL` → the Amaya platform brain ([Connecting the platform brain](#connecting-the-platform-brain)).
+> 2. `ANTHROPIC_API_KEY` → **the Claude brain**: real web research and reports with real sources ([The Claude brain](#the-claude-brain)).
+> 3. Neither → the built-in **local demo brain**, whose reports contain **illustrative data** labelled `DEMO`.
 
 ---
 
@@ -58,6 +60,29 @@ Mic ─► Web Speech STT ─► wake word "Amaya"
 | `src/components/amaya/*` | The interface: orb, windows, report, bars |
 
 ---
+
+## The Claude brain
+
+Enable it by adding a single key to `.env.local`:
+
+```bash
+ANTHROPIC_API_KEY=sk-ant-...      # from platform.claude.com, server-side only
+# AMAYA_MODEL=claude-opus-5-5     # optional (this is the default)
+```
+
+The top bar then shows `BRAIN: CLAUDE`. Implementation: `src/lib/amaya/claude-brain.ts`.
+
+| Part | Effort | What it does |
+|---|---|---|
+| Conversation agent | `low` (fast spoken replies) | Understands what you say, replies briefly, and drives the HUD through two tools: `hud` (wake / present / clear / camera…) and `start_research` |
+| Research agent | `medium` | Searches the web with Claude's server-side web search tool (`web_search_20260209`, up to 6 searches), then calls `publish_report` with structured blocks |
+
+- **Live progress:** every search query appears on the research card ("Searching: …"), and every result appears as a source with its real URL in the sources window.
+- **Validating model output:** the report passes through `sanitizeReport` (`report-schema.ts`) before reaching the screen: it drops malformed blocks, caps lengths, and keeps the grid under 15 cells so the orb's corner stays free.
+- **Refusal fallback:** requests use `fallbacks: "default"` (beta `server-side-fallback-2026-07-01`). If a safety classifier declines a request, it is re-run automatically on Anthropic's recommended fallback model.
+- **Errors:** an invalid key gives `brain_auth`, a rate limit gives `brain_busy`, and a connection problem gives `brain_unreachable`. Each shows as a clear message on the HUD.
+- **Cost (Opus 5.5, $4 / $20 per million tokens):** a conversational turn is cheap. A research turn costs more because the search results are read in full, plus the cost of the searches themselves. Track it in the Claude Console.
+- **Duration:** research takes about one to three minutes. The route sets `maxDuration = 300`.
 
 ## Connecting the platform brain
 

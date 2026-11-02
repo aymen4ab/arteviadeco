@@ -34,12 +34,12 @@ export async function streamBrain(
   for (const e of nd.flush()) onEvent(e)
 }
 
-export async function fetchBrainMode(): Promise<'local' | 'remote' | 'offline'> {
+export async function fetchBrainMode(): Promise<'local' | 'remote' | 'claude' | 'offline'> {
   try {
     const res = await fetch(BRAIN_ENDPOINT, { cache: 'no-store' })
     if (!res.ok) return 'offline'
     const j = (await res.json()) as { mode?: string }
-    return j.mode === 'remote' ? 'remote' : 'local'
+    return j.mode === 'remote' ? 'remote' : j.mode === 'claude' ? 'claude' : 'local'
   } catch {
     return 'offline'
   }

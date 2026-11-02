@@ -21,7 +21,7 @@ import { CameraWindow, HistoryWindow, SourcesWindow, TextWindow } from './window
 
 type Status = 'idle' | 'listening' | 'thinking' | 'speaking'
 type WinKey = 'history' | 'text' | 'camera' | 'sources'
-type BrainMode = 'local' | 'remote' | 'offline' | 'checking'
+type BrainMode = 'local' | 'remote' | 'claude' | 'offline' | 'checking'
 
 const ARM_MS = 9000
 const NO_WINDOWS = { history: false, text: false, camera: false, sources: false }
@@ -39,8 +39,12 @@ const UI = {
     placeholder: 'اكتب أمراً… مثال: اعملي تقرير عن الطاقة الشمسية',
     errors: {
       unauthorized: 'انتهت الجلسة — سجّل الدخول من جديد.',
+      brain_auth: 'مفتاح Claude غير صالح أو بلا صلاحية.',
+      brain_busy: 'العقل مشغول الآن (حدّ الطلبات). حاول بعد قليل.',
+      brain_unreachable: 'تعذّر الاتصال بخوادم Claude.',
+      research_failed: 'تعذّر إكمال البحث هذه المرة.',
       default: 'تعذّر الوصول إلى العقل. حاول مرة أخرى.',
-    },
+    } as Record<string, string>,
   },
   en: {
     standby: 'STANDBY — SAY "AMAYA"',
@@ -53,8 +57,12 @@ const UI = {
     placeholder: 'Type a command… e.g. do a report on solar energy',
     errors: {
       unauthorized: 'Session expired — please sign in again.',
+      brain_auth: 'The Claude API key is invalid or not permitted.',
+      brain_busy: 'The brain is rate-limited right now. Try again shortly.',
+      brain_unreachable: "Couldn't connect to Claude.",
+      research_failed: "The research run couldn't finish this time.",
       default: "Couldn't reach the brain. Try again.",
-    },
+    } as Record<string, string>,
   },
 }
 
@@ -257,11 +265,19 @@ export function AmayaHud({ displayFont }: { displayFont?: string }) {
           sfx.scanStop()
           sfx.complete()
           break
+        case 'research_failed': {
+          sfx.scanStop()
+          sfx.error()
+          setResearch((r) => (r && r.id === e.id ? null : r))
+          setReport((r) => (r && r.id === e.id ? null : r))
+          showCaption(`⚠ ${UI[live.current.lang].errors.research_failed}`, 5000)
+          break
+        }
         case 'error': {
           sfx.error()
           sfx.scanStop()
           const L = UI[live.current.lang].errors
-          showCaption(`⚠ ${e.message === 'unauthorized' ? L.unauthorized : L.default}`, 5000)
+          showCaption(`⚠ ${L[e.message] ?? L.default}`, 5000)
           setStatus('idle')
           break
         }
@@ -407,7 +423,9 @@ export function AmayaHud({ displayFont }: { displayFont?: string }) {
     const mode = await fetchBrainMode()
     setBrainMode(mode)
     await line(
-      `BRAIN LINK ............... ${mode === 'remote' ? 'AMAYA PLATFORM' : mode === 'local' ? 'LOCAL · DEMO' : 'OFFLINE'}`
+      `BRAIN LINK ............... ${
+        mode === 'remote' ? 'AMAYA PLATFORM' : mode === 'claude' ? 'CLAUDE' : mode === 'local' ? 'LOCAL · DEMO' : 'OFFLINE'
+      }`
     )
     await line('OPTICS ................... STANDBY')
     const left = 2700 - (performance.now() - started)
