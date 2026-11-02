@@ -123,6 +123,19 @@ const nextConfig: NextConfig = {
         source: "/:path*",
         headers: [...SECURITY_HEADERS],
       },
+      {
+        // Amaya (voice HUD) is the one page that needs the microphone
+        // and camera. Must stay AFTER the catch-all rule above: when two
+        // rules set the same key, the last one wins.
+        source: "/amaya",
+        headers: [
+          {
+            key: "Permissions-Policy",
+            value:
+              "camera=(self), microphone=(self), geolocation=(), payment=(), usb=()",
+          },
+        ],
+      },
     ];
   },
 };

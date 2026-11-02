@@ -1,0 +1,1369 @@
+/* =====================================================================
+ * AMAYA HUD
+ * Everything is scoped under .amy-root so nothing leaks into the CRM.
+ * ===================================================================== */
+
+.amy-root {
+  --amy-pink: #ff2d75;
+  --amy-pink-rgb: 255, 45, 117;
+  --amy-cyan: #78dcff;
+  --amy-cyan-rgb: 120, 220, 255;
+  --amy-text: #d8e6f5;
+  --amy-dim: rgba(190, 215, 240, 0.5);
+  --amy-panel-bg: rgba(5, 14, 26, 0.84);
+  --amy-ease: cubic-bezier(0.7, 0, 0.2, 1);
+  --amy-gutter: 18px;
+
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  overflow: hidden;
+  background: #03060c;
+  color: var(--amy-text);
+  font-family: var(--amy-font-mono), var(--amy-font-ar), ui-monospace, monospace;
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  user-select: none;
+  -webkit-font-smoothing: antialiased;
+}
+.amy-root *,
+.amy-root *::before,
+.amy-root *::after {
+  box-sizing: border-box;
+}
+.amy-root button {
+  font: inherit;
+  color: inherit;
+}
+
+.amy-mono {
+  font-family: var(--amy-font-mono), monospace;
+  font-variant-numeric: tabular-nums;
+}
+.amy-dim {
+  color: var(--amy-dim);
+}
+.amy-ok {
+  color: #7dffb0;
+}
+.amy-active {
+  color: #ffd166;
+}
+
+/* --------------------------------------------------------------------- */
+/* Background                                                             */
+/* --------------------------------------------------------------------- */
+
+.amy-bg,
+.amy-bg > i {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.amy-bg-glow {
+  background: radial-gradient(
+    ellipse 55% 50% at 50% 46%,
+    rgba(22, 92, 140, 0.32) 0%,
+    rgba(10, 40, 70, 0.18) 45%,
+    transparent 75%
+  );
+  transition:
+    opacity 1.2s var(--amy-ease),
+    transform 1.2s var(--amy-ease);
+  opacity: 0.75;
+}
+.amy-root.is-awake .amy-bg-glow {
+  opacity: 1;
+  transform: scale(1.25);
+  background: radial-gradient(
+    ellipse 60% 55% at 50% 46%,
+    rgba(30, 120, 175, 0.42) 0%,
+    rgba(12, 50, 90, 0.22) 50%,
+    transparent 80%
+  );
+}
+.amy-root.is-asleep .amy-bg-glow,
+.amy-root.is-offline .amy-bg-glow {
+  opacity: 0.25;
+}
+.amy-bg-grid {
+  background-image:
+    linear-gradient(rgba(var(--amy-cyan-rgb), 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(var(--amy-cyan-rgb), 0.035) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 50%, #000 20%, transparent 80%);
+  opacity: 0;
+  transition: opacity 1.4s ease;
+}
+.amy-root.is-awake .amy-bg-grid {
+  opacity: 1;
+}
+.amy-bg-scan {
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.018) 0 1px,
+    transparent 1px 3px
+  );
+}
+.amy-bg-scan::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 120px;
+  background: linear-gradient(to bottom, transparent, rgba(var(--amy-cyan-rgb), 0.035), transparent);
+  animation: amy-sweep 7s linear infinite;
+}
+.amy-bg-vignette {
+  background: radial-gradient(ellipse at center, transparent 45%, rgba(0, 0, 0, 0.8) 100%);
+}
+.amy-bg-flash {
+  background: radial-gradient(circle at 50% 50%, rgba(var(--amy-cyan-rgb), 0.35), transparent 60%);
+  opacity: 0;
+}
+.amy-root.is-awake .amy-bg-flash {
+  animation: amy-flash 1.1s ease-out;
+}
+
+/* --------------------------------------------------------------------- */
+/* Buttons / bars                                                         */
+/* --------------------------------------------------------------------- */
+
+.amy-btn {
+  appearance: none;
+  background: rgba(5, 14, 26, 0.7);
+  border: 1px solid rgba(var(--amy-cyan-rgb), 0.45);
+  color: var(--amy-text);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 5px 10px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    background 0.15s,
+    border-color 0.15s,
+    box-shadow 0.15s,
+    color 0.15s;
+}
+.amy-btn:hover {
+  border-color: var(--amy-cyan);
+  box-shadow: 0 0 12px rgba(var(--amy-cyan-rgb), 0.35);
+  color: #fff;
+}
+.amy-btn:active {
+  transform: translateY(1px);
+}
+.amy-btn.is-active {
+  background: rgba(var(--amy-cyan-rgb), 0.16);
+  border-color: var(--amy-cyan);
+  color: #fff;
+}
+.amy-btn.is-danger {
+  border-color: var(--amy-pink);
+  color: #fff;
+  background: rgba(var(--amy-pink-rgb), 0.2);
+}
+.amy-btn:focus-visible,
+.amy-select select:focus-visible {
+  outline: 1px solid var(--amy-pink);
+  outline-offset: 2px;
+}
+
+.amy-topbar {
+  position: absolute;
+  top: 12px;
+  left: var(--amy-gutter);
+  right: var(--amy-gutter);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  z-index: 20;
+  animation: amy-drop 0.7s var(--amy-ease) both;
+}
+.amy-brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--amy-font-display), sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  font-size: 11px;
+  white-space: nowrap;
+}
+.amy-brand-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--amy-pink);
+  box-shadow: 0 0 10px var(--amy-pink);
+  animation: amy-blink 2.4s infinite;
+}
+.amy-brain {
+  font-family: var(--amy-font-mono), monospace;
+  font-weight: 400;
+  font-size: 9.5px;
+  letter-spacing: 0.12em;
+  padding: 3px 7px;
+  border: 1px solid rgba(var(--amy-cyan-rgb), 0.3);
+  color: var(--amy-dim);
+}
+.amy-brain-remote {
+  border-color: #7dffb0;
+  color: #7dffb0;
+}
+.amy-brain-local {
+  border-color: #ffd166;
+  color: #ffd166;
+}
+.amy-brain-offline {
+  border-color: var(--amy-pink);
+  color: var(--amy-pink);
+}
+.amy-topnav {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.amy-select {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  color: var(--amy-dim);
+  white-space: nowrap;
+}
+.amy-select select {
+  appearance: none;
+  background: rgba(5, 14, 26, 0.7);
+  border: 1px solid rgba(var(--amy-cyan-rgb), 0.45);
+  color: var(--amy-text);
+  font: inherit;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  padding: 5px 22px 5px 8px;
+  max-width: 180px;
+  cursor: pointer;
+  background-image: linear-gradient(45deg, transparent 50%, var(--amy-cyan) 50%),
+    linear-gradient(135deg, var(--amy-cyan) 50%, transparent 50%);
+  background-position:
+    calc(100% - 11px) 50%,
+    calc(100% - 7px) 50%;
+  background-size: 4px 4px;
+  background-repeat: no-repeat;
+}
+
+.amy-bottombar {
+  position: absolute;
+  left: var(--amy-gutter);
+  right: var(--amy-gutter);
+  bottom: 12px;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 16px;
+  z-index: 20;
+  animation: amy-rise 0.7s var(--amy-ease) both;
+}
+.amy-meter-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 10px;
+}
+.amy-mic {
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  color: var(--amy-dim);
+}
+.amy-meter {
+  position: relative;
+  width: 150px;
+  height: 7px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+.amy-meter-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 0;
+  background: linear-gradient(90deg, #a3122f, #ff2d55 55%, #ff8fa3);
+  box-shadow: 0 0 10px rgba(255, 45, 85, 0.7);
+  mask-image: repeating-linear-gradient(90deg, #000 0 4px, transparent 4px 5px);
+}
+.amy-meter-peak {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  left: 0;
+  background: #fff;
+  transition: left 0.15s linear;
+}
+.amy-meter.is-muted .amy-meter-fill {
+  background: rgba(255, 255, 255, 0.2);
+  box-shadow: none;
+}
+.amy-transcript {
+  min-width: 0;
+  font-size: 12px;
+  color: var(--amy-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: color 0.2s;
+}
+.amy-transcript.is-armed {
+  color: #fff;
+}
+.amy-transcript.is-final {
+  color: rgba(255, 255, 255, 0.85);
+}
+.amy-status {
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  color: var(--amy-cyan);
+  white-space: nowrap;
+}
+
+/* --------------------------------------------------------------------- */
+/* Stage                                                                  */
+/* --------------------------------------------------------------------- */
+
+.amy-stage {
+  position: absolute;
+  top: 54px;
+  bottom: 50px;
+  left: var(--amy-gutter);
+  right: var(--amy-gutter);
+  z-index: 5;
+}
+
+/* --------------------------------------------------------------------- */
+/* Orb                                                                    */
+/* --------------------------------------------------------------------- */
+
+.amy-orb {
+  position: absolute;
+  z-index: 10;
+  width: min(48vmin, 440px);
+  height: min(48vmin, 440px);
+  left: calc(50% - min(24vmin, 220px));
+  top: calc(48% - min(24vmin, 220px));
+  transition:
+    width 0.95s var(--amy-ease),
+    height 0.95s var(--amy-ease),
+    left 0.95s var(--amy-ease),
+    top 0.95s var(--amy-ease);
+}
+.amy-orb.is-corner {
+  width: 150px;
+  height: 150px;
+  left: calc(100% - 150px - var(--amy-gutter));
+  top: calc(100% - 150px - 54px);
+}
+.amy-orb-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  cursor: pointer;
+  filter: drop-shadow(0 0 14px rgba(var(--amy-pink-rgb), 0.45));
+}
+.amy-root.is-offline .amy-orb-canvas {
+  cursor: default;
+}
+
+.amy-caption {
+  position: absolute;
+  z-index: 15;
+  left: 50%;
+  top: calc(48% + min(24vmin, 220px) + 6px);
+  transform: translateX(-50%);
+  max-width: min(760px, calc(100% - 40px));
+  text-align: center;
+  font-family: var(--amy-font-ar), var(--amy-font-mono), sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+  color: #fff;
+  text-shadow:
+    0 0 12px rgba(var(--amy-pink-rgb), 0.55),
+    0 1px 2px #000;
+  animation: amy-caption-in 0.45s var(--amy-ease) both;
+  pointer-events: none;
+}
+.amy-caption.is-low {
+  top: auto;
+  bottom: 54px;
+  font-size: 13px;
+  background: rgba(3, 6, 12, 0.7);
+  padding: 4px 12px;
+  border-left: 2px solid var(--amy-pink);
+}
+
+/* --------------------------------------------------------------------- */
+/* Panels                                                                 */
+/* --------------------------------------------------------------------- */
+
+.amy-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--amy-panel-bg);
+  border: 1px solid rgba(var(--amy-cyan-rgb), 0.5);
+  box-shadow:
+    inset 0 0 0 1px rgba(var(--amy-cyan-rgb), 0.06),
+    inset 0 0 30px rgba(var(--amy-cyan-rgb), 0.05),
+    0 0 22px rgba(70, 190, 255, 0.16);
+  backdrop-filter: blur(4px);
+  animation: amy-panel-in 0.6s var(--amy-ease) both;
+}
+.amy-panel::before {
+  /* light sweep across the panel when it opens */
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(105deg, transparent 30%, rgba(var(--amy-cyan-rgb), 0.18) 50%, transparent 70%);
+  background-size: 250% 100%;
+  animation: amy-sheen 0.9s ease-out 0.15s both;
+  animation-delay: inherit;
+}
+.amy-panel.is-closing {
+  animation: amy-panel-out 0.32s var(--amy-ease) both !important;
+}
+.amy-corner {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-color: var(--amy-cyan);
+  border-style: solid;
+  border-width: 0;
+  filter: drop-shadow(0 0 4px var(--amy-cyan));
+}
+.amy-corner.tl {
+  top: -2px;
+  left: -2px;
+  border-top-width: 2px;
+  border-left-width: 2px;
+}
+.amy-corner.tr {
+  top: -2px;
+  right: -2px;
+  border-top-width: 2px;
+  border-right-width: 2px;
+}
+.amy-corner.bl {
+  bottom: -2px;
+  left: -2px;
+  border-bottom-width: 2px;
+  border-left-width: 2px;
+}
+.amy-corner.br {
+  bottom: -2px;
+  right: -2px;
+  border-bottom-width: 2px;
+  border-right-width: 2px;
+}
+.amy-panel-head,
+.amy-panel-foot {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgba(var(--amy-cyan-rgb), 0.85);
+  flex: none;
+}
+.amy-panel-foot {
+  color: var(--amy-dim);
+  font-size: 8.5px;
+  padding-top: 4px;
+}
+.amy-panel-head {
+  border-bottom: 1px solid rgba(var(--amy-cyan-rgb), 0.12);
+}
+.amy-panel-tag b {
+  font-weight: 700;
+}
+.amy-panel-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.amy-x {
+  background: none;
+  border: 0;
+  cursor: pointer;
+  color: var(--amy-dim);
+  font-size: 11px;
+  padding: 0 2px;
+}
+.amy-x:hover {
+  color: var(--amy-pink);
+}
+.amy-panel-body {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  padding: 8px 12px;
+  overflow: hidden;
+  animation: amy-fade-in 0.4s ease 0.28s both;
+}
+
+/* --------------------------------------------------------------------- */
+/* Report                                                                 */
+/* --------------------------------------------------------------------- */
+
+.amy-report {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  pointer-events: none;
+}
+.amy-report.is-presenting {
+  pointer-events: auto;
+}
+.amy-report-head {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  height: 18px;
+  opacity: 0;
+  transform: translateY(-6px);
+  transition:
+    opacity 0.5s,
+    transform 0.5s var(--amy-ease);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+}
+.amy-report.is-presenting .amy-report-head {
+  opacity: 1;
+  transform: none;
+}
+.amy-report-kicker {
+  color: var(--amy-pink);
+}
+.amy-report-title {
+  font-family: var(--amy-font-display), var(--amy-font-ar), sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  text-transform: uppercase;
+  color: #fff;
+}
+.amy-report-meta {
+  margin-inline-start: auto;
+  color: var(--amy-dim);
+}
+.amy-demo-badge {
+  font-size: 9px;
+  padding: 2px 6px;
+  border: 1px solid #ffd166;
+  color: #ffd166;
+  letter-spacing: 0.1em;
+}
+.amy-report-grid {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-rows: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  /* leave the bottom-right cell free for the docked orb */
+  padding-right: 0;
+}
+
+.amy-b-text h3,
+.amy-b-chart h3 {
+  margin: 0 0 6px;
+  font-family: var(--amy-font-display), var(--amy-font-ar), sans-serif;
+  font-weight: 700;
+  font-size: 12.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #fff;
+  line-height: 1.35;
+}
+.amy-b-text p {
+  margin: 0;
+  font-family: var(--amy-font-mono), var(--amy-font-ar), monospace;
+  font-size: 10.5px;
+  line-height: 1.6;
+  color: rgba(216, 230, 245, 0.85);
+}
+.amy-caret {
+  display: inline-block;
+  width: 6px;
+  height: 1em;
+  margin-inline-start: 2px;
+  vertical-align: -2px;
+  background: var(--amy-cyan);
+  animation: amy-blink 0.8s steps(1) infinite;
+}
+.amy-b-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 5px;
+}
+.amy-b-list li {
+  position: relative;
+  padding-inline-start: 14px;
+  font-size: 10.5px;
+  animation: amy-slide-in 0.35s var(--amy-ease) both;
+}
+.amy-b-list li::before {
+  content: '';
+  position: absolute;
+  inset-inline-start: 0;
+  top: 0.55em;
+  width: 6px;
+  height: 6px;
+  background: var(--amy-pink);
+  box-shadow: 0 0 6px var(--amy-pink);
+}
+.amy-b-stat {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.amy-b-stat-value {
+  font-family: var(--amy-font-display), sans-serif;
+  font-weight: 900;
+  font-size: clamp(26px, 3.4vw, 46px);
+  line-height: 1;
+  color: #fff;
+  text-shadow: 0 0 18px rgba(var(--amy-cyan-rgb), 0.6);
+  font-variant-numeric: tabular-nums;
+}
+.amy-b-stat-label {
+  margin-top: 8px;
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+.amy-b-caption {
+  margin-top: 4px;
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  color: var(--amy-dim);
+}
+.amy-b-chart {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+.amy-chart-svg {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  overflow: visible;
+}
+.amy-chart-grid {
+  stroke: rgba(var(--amy-cyan-rgb), 0.1);
+  stroke-width: 1;
+}
+.amy-chart-bar {
+  fill: rgba(235, 245, 255, 0.92);
+  filter: drop-shadow(0 0 4px rgba(var(--amy-cyan-rgb), 0.6));
+  transition:
+    y 0.9s var(--amy-ease),
+    height 0.9s var(--amy-ease);
+}
+.amy-chart-labels {
+  display: flex;
+  justify-content: space-around;
+  gap: 2px;
+  margin-top: 4px;
+  font-size: 8.5px;
+  letter-spacing: 0.04em;
+  color: var(--amy-dim);
+}
+.amy-chart-labels.is-line {
+  justify-content: space-between;
+}
+.amy-chart-labels span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: center;
+}
+.amy-chart-line {
+  fill: none;
+  stroke: var(--amy-pink);
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+  stroke-dasharray: 1200;
+  stroke-dashoffset: 1200;
+  filter: drop-shadow(0 0 4px var(--amy-pink));
+  transition: stroke-dashoffset 1.4s var(--amy-ease);
+}
+.amy-chart-line.is-drawn {
+  stroke-dashoffset: 0;
+}
+.amy-chart-dot {
+  fill: #fff;
+  animation: amy-pop 0.35s var(--amy-ease) both;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.amy-block.is-media .amy-panel-body {
+  padding: 0;
+}
+.amy-b-media {
+  position: relative;
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  background: #040a14;
+}
+.amy-b-media img,
+.amy-b-media video,
+.amy-visual-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.amy-b-media figcaption {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 6px 10px;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  background: linear-gradient(transparent, rgba(3, 6, 12, 0.9));
+}
+
+/* --------------------------------------------------------------------- */
+/* Research card                                                          */
+/* --------------------------------------------------------------------- */
+
+.amy-research {
+  position: absolute;
+  z-index: 8;
+  width: min(460px, 100%);
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -60%);
+  transition:
+    width 0.8s var(--amy-ease),
+    left 0.8s var(--amy-ease),
+    top 0.8s var(--amy-ease),
+    transform 0.8s var(--amy-ease);
+}
+.amy-research.is-mini {
+  width: 270px;
+  left: 0;
+  top: 46%;
+  transform: translate(0, -50%);
+}
+.amy-research .amy-panel {
+  border-color: rgba(var(--amy-cyan-rgb), 0.85);
+  box-shadow:
+    inset 0 0 30px rgba(var(--amy-cyan-rgb), 0.08),
+    0 0 30px rgba(70, 190, 255, 0.3);
+}
+.amy-research-body {
+  all: unset;
+  display: block;
+  width: 100%;
+  cursor: default;
+}
+.amy-research-body:not(:disabled) {
+  cursor: pointer;
+}
+.amy-research-topic {
+  font-family: var(--amy-font-display), var(--amy-font-ar), sans-serif;
+  font-weight: 900;
+  font-size: 26px;
+  line-height: 1.15;
+  text-transform: uppercase;
+  color: #fff;
+  text-shadow: 0 0 14px rgba(var(--amy-cyan-rgb), 0.5);
+  transition: font-size 0.6s var(--amy-ease);
+}
+.amy-research.is-mini .amy-research-topic {
+  font-size: 15px;
+}
+.amy-research-status {
+  margin: 8px 0 10px;
+  min-height: 1.4em;
+  font-size: 10.5px;
+  letter-spacing: 0.14em;
+}
+.amy-segbar {
+  display: grid;
+  grid-template-columns: repeat(28, 1fr);
+  gap: 2px;
+  height: 9px;
+}
+.amy-segbar i {
+  background: rgba(255, 255, 255, 0.09);
+  transition:
+    background 0.25s,
+    box-shadow 0.25s;
+}
+.amy-segbar i.on {
+  background: #e9f6ff;
+  box-shadow: 0 0 6px rgba(var(--amy-cyan-rgb), 0.9);
+}
+.amy-segbar i.scan {
+  animation: amy-seg-scan 0.9s ease-in-out infinite;
+}
+.amy-research-counts {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px;
+  font-size: 9.5px;
+  letter-spacing: 0.16em;
+  color: var(--amy-dim);
+}
+.amy-research-counts b {
+  color: #fff;
+  font-weight: 700;
+}
+
+/* --------------------------------------------------------------------- */
+/* Windows                                                                */
+/* --------------------------------------------------------------------- */
+
+.amy-wins {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 12;
+}
+.amy-win {
+  position: absolute;
+  pointer-events: auto;
+  user-select: text;
+}
+.amy-win-history {
+  right: 0;
+  top: 0;
+  width: min(380px, 100%);
+  height: min(60%, 520px);
+}
+.amy-win-sources {
+  right: 0;
+  bottom: 0;
+  width: min(380px, 100%);
+  height: min(36%, 320px);
+}
+.amy-win-camera {
+  left: 0;
+  top: 0;
+  width: min(400px, 100%);
+}
+.amy-win-text {
+  left: 0;
+  right: 0;
+  bottom: 6px;
+  margin-inline: auto;
+  width: min(620px, 100%);
+}
+.amy-history {
+  height: 100%;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-right: 4px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(var(--amy-cyan-rgb), 0.3) transparent;
+}
+.amy-turn {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 2px 8px;
+  animation: amy-slide-in 0.3s var(--amy-ease) both;
+}
+.amy-turn-who {
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  color: var(--amy-cyan);
+}
+.amy-turn.amaya .amy-turn-who {
+  color: var(--amy-pink);
+}
+.amy-turn-time {
+  font-size: 9px;
+  color: var(--amy-dim);
+  text-align: end;
+}
+.amy-turn p {
+  grid-column: 1 / -1;
+  margin: 0;
+  font-size: 11.5px;
+  line-height: 1.55;
+}
+.amy-textform {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.amy-prompt {
+  color: var(--amy-pink);
+  font-size: 16px;
+}
+.amy-textform input {
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid rgba(var(--amy-cyan-rgb), 0.35);
+  color: #fff;
+  font: inherit;
+  font-size: 13px;
+  padding: 6px 2px;
+  outline: none;
+}
+.amy-textform input:focus {
+  border-bottom-color: var(--amy-cyan);
+}
+.amy-textform input::placeholder {
+  color: var(--amy-dim);
+}
+.amy-cam {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  background: #000;
+  margin: -8px -12px;
+}
+.amy-cam video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scaleX(-1);
+  filter: saturate(0.85) contrast(1.05);
+}
+.amy-cam-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(to bottom, rgba(0, 0, 0, 0.18) 0 1px, transparent 1px 3px);
+}
+.amy-cam-scan {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: rgba(var(--amy-cyan-rgb), 0.7);
+  box-shadow: 0 0 12px var(--amy-cyan);
+  animation: amy-cam-scan 2.8s ease-in-out infinite;
+}
+.amy-cam-reticle {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 34%;
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%);
+  border: 1px dashed rgba(var(--amy-pink-rgb), 0.7);
+  border-radius: 50%;
+  animation: amy-spin 12s linear infinite;
+}
+.amy-cam-error {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: var(--amy-pink);
+  letter-spacing: 0.2em;
+  font-size: 11px;
+}
+.amy-rec {
+  color: var(--amy-pink);
+  animation: amy-blink 1.2s steps(1) infinite;
+}
+.amy-sources {
+  height: 100%;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(var(--amy-cyan-rgb), 0.3) transparent;
+}
+.amy-sources ol {
+  margin: 8px 0 0;
+  padding-inline-start: 22px;
+  display: grid;
+  gap: 3px;
+  font-size: 10.5px;
+}
+.amy-sources a {
+  color: var(--amy-cyan);
+}
+.amy-note {
+  font-size: 10.5px;
+  padding: 5px 8px;
+  margin-bottom: 4px;
+  border-inline-start: 2px solid #ffd166;
+  background: rgba(255, 209, 102, 0.06);
+}
+
+/* --------------------------------------------------------------------- */
+/* Boot                                                                   */
+/* --------------------------------------------------------------------- */
+
+.amy-boot {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(ellipse at center, rgba(3, 6, 12, 0.6), rgba(3, 6, 12, 0.96) 70%);
+}
+.amy-boot.is-booting {
+  background: transparent;
+  place-items: end start;
+  padding: 0 0 28px var(--amy-gutter);
+  pointer-events: none;
+}
+.amy-boot-btn {
+  all: unset;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  text-align: center;
+}
+.amy-boot-logo {
+  font-family: var(--amy-font-display), sans-serif;
+  font-weight: 900;
+  font-size: clamp(44px, 9vw, 96px);
+  letter-spacing: 0.18em;
+  color: #fff;
+  text-shadow:
+    0 0 18px rgba(var(--amy-pink-rgb), 0.9),
+    0 0 48px rgba(var(--amy-pink-rgb), 0.5);
+  animation: amy-glitch 3.2s infinite;
+}
+.amy-boot-cta {
+  font-size: 12px;
+  letter-spacing: 0.3em;
+  padding: 10px 24px;
+  border: 1px solid var(--amy-pink);
+  color: #fff;
+  box-shadow: 0 0 18px rgba(var(--amy-pink-rgb), 0.35);
+  animation: amy-pulse 2s ease-in-out infinite;
+}
+.amy-boot-btn:hover .amy-boot-cta {
+  background: rgba(var(--amy-pink-rgb), 0.18);
+}
+.amy-boot-hint {
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: var(--amy-dim);
+}
+.amy-boot-log {
+  margin: 0;
+  font-family: var(--amy-font-mono), monospace;
+  font-size: 11px;
+  line-height: 1.75;
+  color: rgba(var(--amy-cyan-rgb), 0.9);
+}
+.amy-boot-log div {
+  animation: amy-type-line 0.35s steps(24) both;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+/* --------------------------------------------------------------------- */
+/* Keyframes                                                              */
+/* --------------------------------------------------------------------- */
+
+@keyframes amy-panel-in {
+  0% {
+    opacity: 0;
+    clip-path: inset(50% 0 50% 0);
+    transform: scale(0.97);
+  }
+  12% {
+    opacity: 1;
+  }
+  45% {
+    clip-path: inset(0 0 0 0);
+    transform: scale(1);
+  }
+  55% {
+    opacity: 0.45;
+  }
+  62% {
+    opacity: 1;
+  }
+  70% {
+    opacity: 0.75;
+  }
+  100% {
+    opacity: 1;
+    clip-path: inset(0 0 0 0);
+  }
+}
+@keyframes amy-panel-out {
+  0% {
+    opacity: 1;
+    clip-path: inset(0 0 0 0);
+  }
+  30% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 0;
+    clip-path: inset(50% 0 50% 0);
+    transform: scale(0.98);
+  }
+}
+@keyframes amy-sheen {
+  from {
+    background-position: 120% 0;
+  }
+  to {
+    background-position: -120% 0;
+  }
+}
+@keyframes amy-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes amy-slide-in {
+  from {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes amy-pop {
+  from {
+    transform: scale(0);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+@keyframes amy-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.25;
+  }
+}
+@keyframes amy-sweep {
+  from {
+    top: -120px;
+  }
+  to {
+    top: 100%;
+  }
+}
+@keyframes amy-flash {
+  0% {
+    opacity: 0.9;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+@keyframes amy-drop {
+  from {
+    opacity: 0;
+    transform: translateY(-14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes amy-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes amy-caption-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 6px);
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+    filter: none;
+  }
+}
+@keyframes amy-seg-scan {
+  0%,
+  100% {
+    background: rgba(255, 255, 255, 0.09);
+  }
+  50% {
+    background: rgba(var(--amy-cyan-rgb), 0.55);
+  }
+}
+@keyframes amy-cam-scan {
+  0% {
+    top: 0;
+  }
+  50% {
+    top: calc(100% - 2px);
+  }
+  100% {
+    top: 0;
+  }
+}
+@keyframes amy-spin {
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+@keyframes amy-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 12px rgba(var(--amy-pink-rgb), 0.25);
+  }
+  50% {
+    box-shadow: 0 0 28px rgba(var(--amy-pink-rgb), 0.6);
+  }
+}
+@keyframes amy-glitch {
+  0%,
+  88%,
+  100% {
+    transform: none;
+    text-shadow:
+      0 0 18px rgba(var(--amy-pink-rgb), 0.9),
+      0 0 48px rgba(var(--amy-pink-rgb), 0.5);
+  }
+  90% {
+    transform: translateX(-3px) skewX(-6deg);
+    text-shadow:
+      3px 0 rgba(var(--amy-cyan-rgb), 0.9),
+      -3px 0 rgba(var(--amy-pink-rgb), 0.9);
+  }
+  92% {
+    transform: translateX(3px);
+  }
+  94% {
+    transform: none;
+  }
+}
+@keyframes amy-type-line {
+  from {
+    max-width: 0;
+  }
+  to {
+    max-width: 60ch;
+  }
+}
+
+/* --------------------------------------------------------------------- */
+/* Responsive                                                             */
+/* --------------------------------------------------------------------- */
+
+@media (max-width: 1000px) {
+  .amy-select {
+    display: none;
+  }
+  .amy-report-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: none;
+    grid-auto-rows: 190px;
+    overflow-y: auto;
+    padding-bottom: 170px;
+  }
+  .amy-report.is-presenting {
+    overflow: hidden;
+  }
+  .amy-meter {
+    width: 90px;
+  }
+  .amy-meter-group .amy-mono {
+    display: none;
+  }
+}
+@media (max-width: 640px) {
+  .amy-root {
+    --amy-gutter: 12px;
+  }
+  .amy-brand .amy-dim,
+  .amy-brain {
+    display: none;
+  }
+  .amy-report-head {
+    height: auto;
+    flex-wrap: wrap;
+    row-gap: 4px;
+  }
+  .amy-report-meta {
+    display: none;
+  }
+  .amy-report-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .amy-block {
+    grid-column: span 1 !important;
+  }
+  .amy-orb {
+    width: 76vmin;
+    height: 76vmin;
+    left: calc(50% - 38vmin);
+    top: calc(46% - 38vmin);
+  }
+  .amy-orb.is-corner {
+    width: 96px;
+    height: 96px;
+    left: calc(100% - 96px - var(--amy-gutter));
+    top: calc(100% - 96px - 54px);
+  }
+  .amy-caption {
+    top: calc(46% + 38vmin + 4px);
+  }
+  .amy-bottombar {
+    grid-template-columns: auto 1fr;
+  }
+  .amy-status {
+    display: none;
+  }
+  .amy-research.is-mini {
+    width: 210px;
+    top: 30%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .amy-root *,
+  .amy-root *::before,
+  .amy-root *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
